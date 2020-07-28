@@ -36,12 +36,14 @@ int main(int argc, char **argv)
 {  
     if(argc < 5)
     {
+        // 可以同时传入多个数据集
         cerr << endl << "Usage: ./mono_euroc path_to_vocabulary path_to_settings path_to_sequence_folder_1 path_to_times_file_1 (path_to_image_folder_2 path_to_times_file_2 ... path_to_image_folder_N path_to_times_file_N) (trajectory_file_name)" << endl;
         return 1;
     }
-
+    // 数据集的个数
     const int num_seq = (argc-3)/2;
     cout << "num_seq = " << num_seq << endl;
+    // trajectory_file_name
     bool bFileName= (((argc-3) % 2) == 1);
     string file_name;
     if (bFileName)
