@@ -885,7 +885,7 @@ namespace ORB_SLAM3
             */
             keypoints = DistributeOctTree(vToDistributeKeys,
                                           minBorderX, // 边缘扩充图像 下的边界
-                                          axBorderX,
+                                          maxBorderX,
                                           minBorderY, maxBorderY, mnFeaturesPerLevel[level], //希望保留下来的当层图像的特征点个数
                                           level                                              //当前所在的图层
             );
