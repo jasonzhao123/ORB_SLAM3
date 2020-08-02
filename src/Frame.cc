@@ -84,7 +84,7 @@ Frame::Frame(const Frame &frame)
     mmMatchedInImage = frame.mmMatchedInImage;
 }
 
-
+// Constructor for stereo cameras
 Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeStamp, ORBextractor* extractorLeft, ORBextractor* extractorRight, ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth, GeometricCamera* pCamera, Frame* pPrevF, const IMU::Calib &ImuCalib)
     :mpcpi(NULL), mpORBvocabulary(voc),mpORBextractorLeft(extractorLeft),mpORBextractorRight(extractorRight), mTimeStamp(timeStamp), mK(K.clone()), mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth),
      mImuCalib(ImuCalib), mpImuPreintegrated(NULL), mpPrevFrame(pPrevF),mpImuPreintegratedFrame(NULL), mpReferenceKF(static_cast<KeyFrame*>(NULL)), mbImuPreintegrated(false),
@@ -93,13 +93,21 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
     // Frame ID
     mnId=nNextId++;
 
+    // 图像金字塔的参数
     // Scale Level Info
+    // 获取金字塔的层数
     mnScaleLevels = mpORBextractorLeft->GetLevels();
+    // 获取每层的缩放因子
     mfScaleFactor = mpORBextractorLeft->GetScaleFactor();
+    // 计算每层绽放因子的自然对数
     mfLogScaleFactor = log(mfScaleFactor);
+    // 获取各层图像的缩放因子
     mvScaleFactors = mpORBextractorLeft->GetScaleFactors();
+    // 获取各层图像的缩放因子的倒数
     mvInvScaleFactors = mpORBextractorLeft->GetInverseScaleFactors();
+    // 获取 sigma^2
     mvLevelSigma2 = mpORBextractorLeft->GetScaleSigmaSquares();
+    // 获取 sigma^2的倒数
     mvInvLevelSigma2 = mpORBextractorLeft->GetInverseScaleSigmaSquares();
 
     // ORB extraction
@@ -188,7 +196,7 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
     monoLeft = -1;
     monoRight = -1;
 }
-
+// Constructor for RGB-D cameras
 Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth, Frame* pPrevF, const IMU::Calib &ImuCalib)
     :mpcpi(NULL),mpORBvocabulary(voc),mpORBextractorLeft(extractor),mpORBextractorRight(static_cast<ORBextractor*>(NULL)),
      mTimeStamp(timeStamp), mK(K.clone()),mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth),
@@ -271,7 +279,7 @@ Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeSt
     monoRight = -1;
 }
 
-
+// Constructor for Monocular cameras
 Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, GeometricCamera* pCamera, cv::Mat &distCoef, const float &bf, const float &thDepth, Frame* pPrevF, const IMU::Calib &ImuCalib)
     :mpcpi(NULL),mpORBvocabulary(voc),mpORBextractorLeft(extractor),mpORBextractorRight(static_cast<ORBextractor*>(NULL)),
      mTimeStamp(timeStamp), mK(static_cast<Pinhole*>(pCamera)->toK()), mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth),
@@ -299,6 +307,7 @@ Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extra
 #ifdef SAVE_TIMES
     std::chrono::steady_clock::time_point time_StartExtORB = std::chrono::steady_clock::now();
 #endif
+   // Extract ORB on the image. 0 for left image and 1 for right image.
     ExtractORB(0,imGray,0,1000);
 #ifdef SAVE_TIMES
     std::chrono::steady_clock::time_point time_EndExtORB = std::chrono::steady_clock::now();
