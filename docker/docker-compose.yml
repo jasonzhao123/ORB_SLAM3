@@ -1,0 +1,22 @@
+version: '2.3'
+services:
+  orbslam3:
+    image: yubaoliu/orbslam3:melodic
+    build:
+        context: .
+    container_name: orbslam3
+    privileged: true
+    runtime: nvidia
+    command: lxterminal
+    environment:
+        - DISPLAY
+        - QT_X11_NO_MITSHM=1
+    volumes:
+        - /tmp/.X11-unix:/tmp/.X11-unix:rw
+        - ../:/root/catkin_ws/src/ORB_SLAM3
+        - ${DATASET_DIR}:/root/Dataset
+        # - orbslam3:/root
+    network_mode: host
+    entrypoint: /ros_entrypoint.sh
+# volumes:
+    # orbslam3:
