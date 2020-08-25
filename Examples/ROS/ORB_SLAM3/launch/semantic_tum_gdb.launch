@@ -1,0 +1,15 @@
+<launch>
+    <!-- <param name="use_sim_time" value="true" /> -->
+
+    <arg name="PATH_TO_VOCABULARY" value="$(find dynamic_orbslam)/Vocabulary/ORBvoc.txt" />
+    <arg name="PATH_TO_SETTINGS_FILE" value="$(find dynamic_orbslam)/config/RGB-D/TUM3.yaml" />
+    <arg name="PATH_TO_SEQUENCE" value="/root/Dataset/TUM/freiburg3/rgbd_dataset_freiburg3_walking_xyz" />
+    <arg name="PATH_TO_ASSOCIATIONS" value="$(find dynamic_orbslam)/config/RGB-D/associations/fr3_walk_xyz.txt" />
+    <arg name="PATH_TO_RESULT" value="/root/Dataset/DORBSLAM_results/fr3_walk_xyz" />
+
+    <node name="dynamic_orbslam_tum" pkg="dynamic_orbslam" type="Dynamic_RGBD" args="$(arg PATH_TO_VOCABULARY) $(arg PATH_TO_SETTINGS_FILE) $(arg PATH_TO_SEQUENCE) $(arg PATH_TO_ASSOCIATIONS) $(arg PATH_TO_RESULT)" output="screen" launch-prefix="gdb -ex run --args">
+        <param name="base_frame" type="string" value="/kinect" />
+        <param name="frame_id" type="string" value="/odom" />
+    </node>
+
+</launch>
