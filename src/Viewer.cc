@@ -227,6 +227,7 @@ void Viewer::Run()
             toShow = im;
         }
 
+
         cv::imshow("ORB-SLAM3: Current Frame",toShow);
         cv::waitKey(mT);
 
