@@ -1,11 +1,14 @@
-cmake_minimum_required(VERSION 2.4.6)
-include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+cmake_minimum_required(VERSION 2.8.3)
+project(orb_slam3)
+#include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+#rosbuild_init()
 
-rosbuild_init()
-
+SET(CMAKE_BUILD_TYPE Debug)
 IF(NOT ROS_BUILD_TYPE)
   SET(ROS_BUILD_TYPE Release)
 ENDIF()
+
+add_compile_options(-std=c++11)
 
 MESSAGE("Build type: " ${ROS_BUILD_TYPE})
 
@@ -30,6 +33,19 @@ endif()
 
 LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../../cmake_modules)
 
+find_package(catkin REQUIRED COMPONENTS
+    roscpp
+    rospy
+    std_msgs
+    cv_bridge
+    image_transport
+    tf
+    sensor_msgs
+    dynamic_reconfigure
+    message_generation
+)
+
+find_package(Boost REQUIRED COMPONENTS system) 
 find_package(OpenCV 3.0 QUIET)
 if(NOT OpenCV_FOUND)
    find_package(OpenCV 2.4.3 QUIET)
@@ -40,15 +56,18 @@ endif()
 
 find_package(Eigen3 3.1.0 REQUIRED)
 find_package(Pangolin REQUIRED)
-find_package(Boost REQUIRED COMPONENTS system) 
+find_package(Glog REQUIRED)
 
 include_directories(
+    include
+    ${catkin_INCLUDE_DIRS}
     ${PROJECT_SOURCE_DIR}
     ${PROJECT_SOURCE_DIR}/../../../
     ${PROJECT_SOURCE_DIR}/../../../include
     ${PROJECT_SOURCE_DIR}/../../../include/CameraModels
     ${Pangolin_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}$ 
+    ${GLOG_INCLUDE_DIR}
 )
 
 set(LIBS 
@@ -59,10 +78,21 @@ set(LIBS
     ${PROJECT_SOURCE_DIR}/../../../Thirdparty/g2o/lib/libg2o.so
     ${PROJECT_SOURCE_DIR}/../../../lib/libORB_SLAM3.so
     ${Boost_LIBRARIES}
+
+    ${GLOG_LIBRARY}
+    ${catkin_LIBRARIES}
 )
 
+catkin_package(
+ INCLUDE_DIRS include
+ LIBRARIES orb_slam3
+ CATKIN_DEPENDS roscpp rospy std_msgs cv_bridge image_transport tf sensor_msgs dynamic_reconfigure message_generation
+#  DEPENDS system_lib
+)
+
+
 # Node for monocular camera
-rosbuild_add_executable(Mono
+add_executable(Mono
 src/ros_mono.cc
 )
 
@@ -71,7 +101,7 @@ ${LIBS}
 )
 
 # Node for monocular camera (Augmented Reality Demo)
-rosbuild_add_executable(MonoAR
+add_executable(MonoAR
 src/AR/ros_mono_ar.cc
 src/AR/ViewerAR.h
 src/AR/ViewerAR.cc
@@ -82,7 +112,7 @@ ${LIBS}
 )
 
 # Node for stereo camera
-rosbuild_add_executable(Stereo
+add_executable(Stereo
 src/ros_stereo.cc
 )
 
@@ -91,7 +121,7 @@ ${LIBS}
 )
 
 # Node for RGB-D camera
-rosbuild_add_executable(RGBD
+add_executable(RGBD
 src/ros_rgbd.cc
 )
 
