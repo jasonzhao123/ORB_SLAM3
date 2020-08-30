@@ -1,0 +1,8 @@
+compared_pose_pairs 708 pairs
+absolute_translational_error.rmse 0.731364 m
+absolute_translational_error.mean 0.619431 m
+absolute_translational_error.median 0.589526 m
+absolute_translational_error.std 0.388843 m
+absolute_translational_error.min 0.041859 m
+absolute_translational_error.max 1.755825 m
+Showing

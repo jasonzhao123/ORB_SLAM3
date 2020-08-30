@@ -69,8 +69,8 @@ RUN git clone https://github.com/yubaoliu/g2o.git \
     && make install
 
 # TUM Benchmark
-RUN cd /root \
-    && svn checkout https://svncvpr.in.tum.de/cvpr-ros-pkg/trunk/rgbd_benchmark/rgbd_benchmark_tools
+#RUN cd /root \
+#    && svn checkout https://svncvpr.in.tum.de/cvpr-ros-pkg/trunk/rgbd_benchmark/rgbd_benchmark_tools
 
 # # Install dependencies
 # # Newer CUDA was installed in base image, so rosdep keys of CUDA are skipped

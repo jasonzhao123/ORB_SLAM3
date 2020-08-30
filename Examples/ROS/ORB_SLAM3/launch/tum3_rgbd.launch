@@ -5,7 +5,7 @@
     <arg name="PATH_TO_VOCABULARY" value="$(find orb_slam3)/../../../Vocabulary/ORBvoc.txt" />
     <arg name="PATH_TO_SETTINGS_FILE" value="$(find orb_slam3)/config/ros_tum3.yaml" />
 
-    <node name="RGBD" pkg="orb_slam3" type="RGBD" args="$(arg PATH_TO_VOCABULARY) $(arg PATH_TO_SETTINGS_FILE)" output="screen" launch-prefix="gdb -ex run --args">
+    <node name="RGBD" pkg="orb_slam3" type="RGBD" args="$(arg PATH_TO_VOCABULARY) $(arg PATH_TO_SETTINGS_FILE)" output="screen" >
     </node>
 
 </launch>
