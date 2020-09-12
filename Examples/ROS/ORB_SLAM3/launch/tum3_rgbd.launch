@@ -3,7 +3,7 @@
      <param name="use_sim_time" value="true" />
 
     <arg name="PATH_TO_VOCABULARY" value="$(find orb_slam3)/../../../Vocabulary/ORBvoc.txt" />
-    <arg name="PATH_TO_SETTINGS_FILE" value="$(find orb_slam3)/config/ros_tum3.yaml" />
+    <arg name="PATH_TO_SETTINGS_FILE" value="$(find orb_slam3)/config/ros_tum.yaml" />
 
     <node name="RGBD" pkg="orb_slam3" type="RGBD" args="$(arg PATH_TO_VOCABULARY) $(arg PATH_TO_SETTINGS_FILE)" output="screen" >
     </node>

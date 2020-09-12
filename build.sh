@@ -1,8 +1,7 @@
 echo "Configuring and building Thirdparty/DBoW2 ..."
 
 cd Thirdparty/DBoW2
-rm build -rf
-mkdir build
+[ ! -d "build" ] && mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j2
@@ -11,8 +10,7 @@ cd ../../g2o
 
 echo "Configuring and building Thirdparty/g2o ..."
 
-rm build -rf
-mkdir build
+[ ! -d "build" ] && mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j2
@@ -27,8 +25,7 @@ cd ..
 
 echo "Configuring and building ORB_SLAM3 ..."
 
-mkdir build
-rm build -rf
+[ ! -d "build" ] && mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j2

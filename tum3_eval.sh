@@ -1,6 +1,9 @@
 #!/bin/bash
-dataset="/home/yubao/data/Dataset/TUM/freiburg3/"
-result="/tmp/orbslam/"
+dataset="/root/Dataset/TUM/freiburg3/"
+result="`pwd`/data/raw/"
+
+echo "Dataset: $dataset"
+echo "Result path: $result"
 
 if [ -d $result ]; then
     echo "$result"
@@ -11,25 +14,25 @@ fi
 if [ -d "$result/fr3_walk_xyz/" ]; then
     echo "result/fr3_walk_xyz/"
 else
-    mkdir "$result"/fr3_walk_xyz/
+    mkdir "$result/fr3_walk_xyz/"
 fi
 
 if [ -d "$result/fr3_walk_static/" ]; then
     echo "result/fr3_walk_static/"
 else
-    mkdir "$result"/fr3_walk_static/
+    mkdir "$result/fr3_walk_static/"
 fi
 
 if [ -d "$result/fr3_walk_rpy/" ]; then
     echo "result/fr3_walk_rpy/"
 else
-    mkdir "$result"/fr3_walk_rpy/
+    mkdir "$result/fr3_walk_rpy/"
 fi
 
 if [ -d "$result/fr3_walk_halfsphere/" ]; then
     echo "result/fr3_walk_halfsphere/"
 else
-    mkdir "$result"/fr3_walk_halfsphere/
+    mkdir "$result/fr3_walk_halfsphere/"
 fi
 
 if [ -d "$result/fr3_sitting_static/" ]; then
@@ -37,8 +40,6 @@ if [ -d "$result/fr3_sitting_static/" ]; then
 else
     mkdir "$result/fr3_sitting_static/"
 fi
-
-
 
 # Repeated number
 COUNT=5
@@ -49,6 +50,7 @@ do
     echo "------------------- $count --------------------"
     echo "rgbd_dataset_freiburg3_walking_xyz"
     tmp="$result"/fr3_walk_xyz/
+    echo $tmp
      ./Examples/RGB-D/rgbd_tum ./Vocabulary/ORBvoc.txt ./Examples/RGB-D/TUM3.yaml "$dataset"/rgbd_dataset_freiburg3_walking_xyz "$dataset"/rgbd_dataset_freiburg3_walking_xyz/associations.txt
     python ./evaluation/evaluate_ate.py ./evaluation/Ground_truth/TUM/fr3_walk_xyz.txt CameraTrajectory.txt --plot "$tmp"/fr3_walk_xyz_ate_"$count".png  --plot3D  "$tmp"/fr3_walk_xyz_ate_3d_"$count".png --verbose > "$tmp"/fr3_walk_xyz_ate_"$count".txt
     python ./evaluation/evaluate_rpe.py ./evaluation/Ground_truth/TUM/fr3_walk_xyz.txt CameraTrajectory.txt --plot "$tmp"/fr3_walk_xyz_rpe_"$count".png  --fixed_delta --verbose > "$tmp"/fr3_walk_xyz_rpe_"$count".txt
@@ -83,9 +85,9 @@ do
     mv CameraTrajectory.txt $tmp/CameraTrajectory_"$count".txt
 
     echo "-----------------------------------------------------------------"
-    echo "rgbd_dataset_freiburg3_sitting_static"
+    echo "rgbd_dataset_freiburg3_sit_static"
     tmp="$result"/fr3_sitting_static/
-     ./Examples/RGB-D/rgbd_tum ./Vocabulary/ORBvoc.txt ./Examples/RGB-D/TUM3.yaml "$dataset"/rgbd_dataset_freiburg3_sitting_static "$dataset"/rgbd_dataset_freiburg3_sitting_static/associations.txt
+     ./Examples/RGB-D/rgbd_tum ./Vocabulary/ORBvoc.txt ./Examples/RGB-D/TUM3.yaml "$dataset"/rgbd_dataset_freiburg3_sit_static "$dataset"/rgbd_dataset_freiburg3_sit_static/associations.txt
     python ./evaluation/evaluate_ate.py ./evaluation/Ground_truth/TUM/fr3_sitting_static.txt CameraTrajectory.txt --plot "$tmp"/fr3_sitting_static_ate_"$count".png  --plot3D  "$tmp"/fr3_sitting_static_ate_3d_"$count".png --verbose > "$tmp"/fr3_sitting_static_ate_"$count".txt
     python ./evaluation/evaluate_rpe.py ./evaluation/Ground_truth/TUM/fr3_sitting_static.txt CameraTrajectory.txt --plot "$tmp"/fr3_sitting_static_rpe_"$count".png  --fixed_delta --verbose > "$tmp"/fr3_sitting_static_rpe_"$count".txt
     mv KeyFrameTrajectory.txt  $tmp/KeyFrameTrajectory_"$count".txt

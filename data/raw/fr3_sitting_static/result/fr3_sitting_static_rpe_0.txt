@@ -1,0 +1,13 @@
+compared_pose_pairs 649 pairs
+translational_error.rmse 0.009063 m
+translational_error.mean 0.007939 m
+translational_error.median 0.007078 m
+translational_error.std 0.004372 m
+translational_error.min 0.000519 m
+translational_error.max 0.026941 m
+rotational_error.rmse 0.283810 deg
+rotational_error.mean 0.255884 deg
+rotational_error.median 0.004222 deg
+rotational_error.std 0.122766 deg
+rotational_error.min 0.024692 deg
+rotational_error.max 0.742560 deg

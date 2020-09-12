@@ -1,3 +1,13 @@
+# Evaluate TUM dataset
+
+- set **dataset** and **result** path:
+
+```sh
+./tum3_eval.sh
+```
+
+---
+
 # ORB-SLAM3
 
 ### V0.2: Beta version, 21 Jul 2020
