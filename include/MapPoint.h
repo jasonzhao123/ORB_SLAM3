@@ -183,6 +183,7 @@ public:
 public:
     long unsigned int mnId;
     static long unsigned int nNextId;
+    // 创建该MapPoint的关键帧ID
     long int mnFirstKFid;
     long int mnFirstFrame;
     int nObs;

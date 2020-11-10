@@ -137,19 +137,28 @@ KeyFrame* MapPoint::GetReferenceKeyFrame()
     unique_lock<mutex> lock(mMutexFeatures);
     return mpRefKF;
 }
-
+/**
+ * @brief 给地图点添加观测
+ *
+ * 记录哪些 KeyFrame 的那个特征点能观测到该 地图点
+ * 并增加观测的相机数目nObs，单目+1，双目+2
+ * 这个函数是建立关键帧共视关系的核心函数，能共同观测到某些地图点的关键帧是共视关键帧
+ * @param pKF KeyFrame
+ * @param idx MapPoint在KeyFrame中的索引
+ */
 void MapPoint::AddObservation(KeyFrame* pKF, int idx)
 {
     unique_lock<mutex> lock(mMutexFeatures);
+    // leftIndex and rightIndex
     tuple<int,int> indexes;
-
+    // mObservations:观测到该MapPoint的关键帧KF和该MapPoint在KF中的索引
     if(mObservations.count(pKF)){
         indexes = mObservations[pKF];
     }
     else{
         indexes = tuple<int,int>(-1,-1);
     }
-
+    // 双目的情况下，只给一个赋了值，bug?
     if(pKF -> NLeft != -1 && idx >= pKF -> NLeft){
         get<1>(indexes) = idx;
     }
@@ -320,7 +329,7 @@ void MapPoint::IncreaseFound(int n)
     unique_lock<mutex> lock(mMutexFeatures);
     mnFound+=n;
 }
-
+// 计算被找到的比例
 float MapPoint::GetFoundRatio()
 {
     unique_lock<mutex> lock(mMutexFeatures);
@@ -423,9 +432,15 @@ bool MapPoint::IsInKeyFrame(KeyFrame *pKF)
     unique_lock<mutex> lock(mMutexFeatures);
     return (mObservations.count(pKF));
 }
-
+/**
+ * @brief 更新平均观测方向以及观测距离范围
+ *
+ * 由于一个MapPoint会被许多相机观测到，因此在插入关键帧后，需要更新相应变量
+ * 创建新的关键帧的时候会调用
+ */
 void MapPoint::UpdateNormalAndDepth()
 {
+    // 先保存到临时变量中，以释放锁
     map<KeyFrame*,tuple<int,int>> observations;
     KeyFrame* pRefKF;
     cv::Mat Pos;
@@ -442,6 +457,9 @@ void MapPoint::UpdateNormalAndDepth()
     if(observations.empty())
         return;
 
+     // Step 2 计算该地图点的法线方向，也就是朝向等信息。
+    // 能观测到该地图点的所有关键帧，对该点的观测方向归一化为单位向量，然后进行求和得到该地图点的朝向
+    // 初始值为0向量，累加为归一化向量，最后除以总数n
     cv::Mat normal = cv::Mat::zeros(3,1,CV_32F);
     int n=0;
     for(map<KeyFrame*,tuple<int,int>>::iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
@@ -464,10 +482,11 @@ void MapPoint::UpdateNormalAndDepth()
             n++;
         }
     }
-
+    // 参考关键帧相机指向地图点的向量（在世界坐标系下的表示）
     cv::Mat PC = Pos - pRefKF->GetCameraCenter();
+    // 该点到参考关键帧相机的距离
     const float dist = cv::norm(PC);
-
+    // 观测到该地图点的当前帧的特征点在金字塔的第几层
     tuple<int ,int> indexes = observations[pRefKF];
     int leftIndex = get<0>(indexes), rightIndex = get<1>(indexes);
     int level;
@@ -482,13 +501,16 @@ void MapPoint::UpdateNormalAndDepth()
     }
 
     //const int level = pRefKF->mvKeysUn[observations[pRefKF]].octave;
+    // 当前金字塔层对应的缩放倍数
     const float levelScaleFactor =  pRefKF->mvScaleFactors[level];
     const int nLevels = pRefKF->mnScaleLevels;
 
     {
         unique_lock<mutex> lock3(mMutexPos);
+        // 观测到该点的距离上限
         mfMaxDistance = dist*levelScaleFactor;
         mfMinDistance = mfMaxDistance/pRefKF->mvScaleFactors[nLevels-1];
+        // 获得地图点平均的观测方向, 在哪里用到的？
         mNormalVector = normal/n;
     }
 }

@@ -384,7 +384,15 @@ MapPoint* KeyFrame::GetMapPoint(const size_t &idx)
     unique_lock<mutex> lock(mMutexFeatures);
     return mvpMapPoints[idx];
 }
-
+/*
+ * 更新图的连接
+ * 
+ * 1. 首先获得该关键帧的所有MapPoint点，统计观测到这些3d点的每个关键帧与其它所有关键帧之间的共视程度
+ *    对每一个找到的关键帧，建立一条边，边的权重是该关键帧与当前关键帧公共3d点的个数。
+ * 2. 并且该权重必须大于一个阈值，如果没有超过该阈值的权重，那么就只保留权重最大的边（与其它关键帧的共视程度比较高）
+ * 3. 对这些连接按照权重从大到小进行排序，以方便将来的处理
+ *    更新完covisibility图之后，如果没有初始化过，则初始化为连接权重最大的边（与其它关键帧共视程度最高的那个关键帧），类似于最大生成树
+ */
 void KeyFrame::UpdateConnections(bool upParent)
 {
     map<KeyFrame*,int> KFcounter;
@@ -415,7 +423,6 @@ void KeyFrame::UpdateConnections(bool upParent)
             if(mit->first->mnId==mnId || mit->first->isBad() || mit->first->GetMap() != mpMap)
                 continue;
             KFcounter[mit->first]++;
-
         }
     }
 
@@ -427,12 +434,16 @@ void KeyFrame::UpdateConnections(bool upParent)
     //In case no keyframe counter is over threshold add the one with maximum counter
     int nmax=0;
     KeyFrame* pKFmax=NULL;
+    // 至少有15个共视地图点
     int th = 15;
-
+    
+    // vPairs记录与其它关键帧共视帧数大于th的关键帧
+    // pair<int,KeyFrame*>将关键帧的权重写在前面，关键帧写在后面方便后面排序
     vector<pair<int,KeyFrame*> > vPairs;
     vPairs.reserve(KFcounter.size());
     if(!upParent)
         cout << "UPDATE_CONN: current KF " << mnId << endl;
+    // Step 2 找到对应权重最大的关键帧（共视程度最高的关键帧）
     for(map<KeyFrame*,int>::iterator mit=KFcounter.begin(), mend=KFcounter.end(); mit!=mend; mit++)
     {
         if(!upParent)
@@ -445,21 +456,26 @@ void KeyFrame::UpdateConnections(bool upParent)
         if(mit->second>=th)
         {
             vPairs.push_back(make_pair(mit->second,mit->first));
+            // 对应权重需要大于阈值，对这些关键帧建立连接
             (mit->first)->AddConnection(this,mit->second);
         }
     }
-
+    //  Step 3 如果没有连接到关键（超过阈值的权重），则对权重最大的关键帧建立连接
     if(vPairs.empty())
     {
+        // 如果每个关键帧与它共视的关键帧的个数都少于th，
+        // 那就只更新与其它关键帧共视程度最高的关键帧的 mConnectedKeyFrameWeights
+        // 这是对之前th这个阈值可能过高的一个补丁
         vPairs.push_back(make_pair(nmax,pKFmax));
         pKFmax->AddConnection(this,nmax);
     }
-
+    //  Step 4 对共视程度比较高的关键帧对更新连接关系及权重（从大到小）
     sort(vPairs.begin(),vPairs.end());
     list<KeyFrame*> lKFs;
     list<int> lWs;
     for(size_t i=0; i<vPairs.size();i++)
     {
+        // push_front 后变成了从大到小顺序
         lKFs.push_front(vPairs[i].second);
         lWs.push_front(vPairs[i].first);
     }
@@ -478,7 +494,7 @@ void KeyFrame::UpdateConnections(bool upParent)
 //            mpParent->AddChild(this);
 //            mbFirstConnection = false;
 //        }
-
+        // Step 5 更新生成树的连接
         if(mbFirstConnection && mnId!=mpMap->GetInitKFid())
         {
             /*if(!mpParent || mpParent->GetParent() != this)

@@ -1,4 +1,16 @@
+# Documents
+
+https://www.ybliu.com/2020/07/ORB-SLAM3-demo.html
+
 # Evaluate TUM dataset
+
+## Evaluate one TUM dataset
+
+```sh
+./Examples/RGB-D/rgbd_tum ./Vocabulary/ORBvoc.txt ./Examples/RGB-D/TUM3.yaml "$dataset"/rgbd_dataset_freiburg3_walking_xyz "$dataset"/rgbd_dataset_freiburg3_walking_xyz/associations.txt
+```
+
+## Evaluate all TUM dataset in dynamic environments
 
 - set **dataset** and **result** path:
 

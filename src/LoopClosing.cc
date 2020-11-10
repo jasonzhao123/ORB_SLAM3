@@ -61,6 +61,9 @@ void LoopClosing::Run()
     {
         //NEW LOOP AND MERGE DETECTION ALGORITHM
         //----------------------------
+        // Loopclosing中的关键帧是LocalMapping发送过来的，LocalMapping是Tracking中发过来的
+        // 在LocalMapping中通过 InsertKeyFrame 将关键帧插入闭环检测队列mlpLoopKeyFrameQueue
+        // Step 1 查看闭环检测队列mlpLoopKeyFrameQueue中有没有关键帧进来
         if(CheckNewKeyFrames())
         {
             if(mpLastCurrentKF)
@@ -259,14 +262,22 @@ bool LoopClosing::CheckNewKeyFrames()
     unique_lock<mutex> lock(mMutexLoopQueue);
     return(!mlpLoopKeyFrameQueue.empty());
 }
-
+/**
+ * @brief 闭环检测
+ * 
+ * @return true             成功检测到闭环
+ * @return false            未检测到闭环
+ */
 bool LoopClosing::NewDetectCommonRegions()
 {
     {
+        // Step 1 从队列中取出一个关键帧,作为当前检测闭环关键帧
         unique_lock<mutex> lock(mMutexLoopQueue);
+        // 从队列头开始取，也就是先取早进来的关键帧
         mpCurrentKF = mlpLoopKeyFrameQueue.front();
         mlpLoopKeyFrameQueue.pop_front();
         // Avoid that a keyframe can be erased while it is being process by this thread
+        // 设置当前关键帧不要在优化的过程中被删除
         mpCurrentKF->SetNotErase();
         mpCurrentKF->mbCurrentPlaceRecognition = true;
 
@@ -311,7 +322,6 @@ bool LoopClosing::NewDetectCommonRegions()
         bool bCommonRegion = DetectAndReffineSim3FromLastKF(mpCurrentKF, mpLoopMatchedKF, gScw, numProjMatches, mvpLoopMPs, vpMatchedMPs);
         if(bCommonRegion)
         {
-
             bLoopDetectedInKF = true;
 
             mnLoopNumCoincidences++;
