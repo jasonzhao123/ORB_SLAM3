@@ -95,9 +95,16 @@ catkin_package(
 add_executable(Mono
 src/ros_mono.cc
 )
-
 target_link_libraries(Mono
 ${LIBS}
+)
+
+# mono for TUM raw data
+add_executable(Mono_tum_raw
+    src/ros_mono_tum_raw.cc
+)
+target_link_libraries(Mono_tum_raw
+    ${LIBS}
 )
 
 # Node for monocular camera (Augmented Reality Demo)
