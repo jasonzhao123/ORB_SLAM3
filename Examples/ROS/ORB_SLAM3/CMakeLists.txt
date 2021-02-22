@@ -137,6 +137,15 @@ target_link_libraries(Stereo
 ${LIBS}
 )
 
+# Kitti raw data for ROS
+add_executable(Kitti_raw
+    src/ros_kitti_raw.cpp
+)
+
+target_link_libraries(Kitti_raw
+    ${LIBS}
+)
+
 # Node for RGB-D camera
 add_executable(RGBD
 src/ros_rgbd.cc
