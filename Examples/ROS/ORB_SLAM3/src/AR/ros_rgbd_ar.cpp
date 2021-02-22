@@ -22,6 +22,9 @@
 #include <iostream>
 
 #include <cv_bridge/cv_bridge.h>
+#include <message_filters/subscriber.h>
+#include <message_filters/sync_policies/approximate_time.h>
+#include <message_filters/time_synchronizer.h>
 #include <ros/ros.h>
 
 #include <opencv2/core/core.hpp>
@@ -47,6 +50,7 @@ public:
     }
 
     void GrabImage(const sensor_msgs::ImageConstPtr& msg);
+    void GrabRGBD(const sensor_msgs::ImageConstPtr& msgRGB, const sensor_msgs::ImageConstPtr& msgD);
 
     ORB_SLAM3::System* mpSLAM;
 };
@@ -58,13 +62,13 @@ int main(int argc, char** argv)
 
     if (argc != 3) {
         cerr << endl
-             << "Usage: rosrun ORB_SLAM3 Mono path_to_vocabulary path_to_settings" << endl;
+             << "Usage: rosrun ORB_SLAM3 RGBD path_to_vocabulary path_to_settings" << endl;
         ros::shutdown();
         return 1;
     }
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
-    ORB_SLAM3::System SLAM(argv[1], argv[2], ORB_SLAM3::System::MONOCULAR, false);
+    ORB_SLAM3::System SLAM(argv[1], argv[2], ORB_SLAM3::System::RGBD, false);
 
     cout << endl
          << endl;
@@ -82,8 +86,14 @@ int main(int argc, char** argv)
 
     ImageGrabber igb(&SLAM);
 
-    ros::NodeHandle nodeHandler;
-    ros::Subscriber sub = nodeHandler.subscribe("/camera/image_raw", 1, &ImageGrabber::GrabImage, &igb);
+    ros::NodeHandle nh;
+    // ros::Subscriber sub = nh.subscribe("/camera/image_raw", 1, &ImageGrabber::GrabRGBD, &igb);
+
+    message_filters::Subscriber<sensor_msgs::Image> rgb_sub(nh, "/camera/rgb/image_color", 1);
+    message_filters::Subscriber<sensor_msgs::Image> depth_sub(nh, "/camera/depth/image", 1);
+    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> sync_pol;
+    message_filters::Synchronizer<sync_pol> sync(sync_pol(10), rgb_sub, depth_sub);
+    sync.registerCallback(boost::bind(&ImageGrabber::GrabRGBD, &igb, _1, _2));
 
     cv::FileStorage fSettings(argv[2], cv::FileStorage::READ);
     bRGB = static_cast<bool>((int)fSettings["Camera.RGB"]);
@@ -148,6 +158,40 @@ void ImageGrabber::GrabImage(const sensor_msgs::ImageConstPtr& msg)
 
     cv::undistort(im, imu, K, DistCoef);
 
+    if (bRGB)
+        viewerAR.SetImagePose(imu, Tcw, state, vKeys, vMPs);
+    else {
+        cv::cvtColor(imu, imu, CV_RGB2BGR);
+        viewerAR.SetImagePose(imu, Tcw, state, vKeys, vMPs);
+    }
+}
+
+void ImageGrabber::GrabRGBD(const sensor_msgs::ImageConstPtr& msgRGB, const sensor_msgs::ImageConstPtr& msgD)
+{
+    // Copy the ros image message to cv::Mat.
+    cv_bridge::CvImageConstPtr cv_ptrRGB;
+    try {
+        cv_ptrRGB = cv_bridge::toCvShare(msgRGB);
+    } catch (cv_bridge::Exception& e) {
+        ROS_ERROR("cv_bridge exception: %s", e.what());
+        return;
+    }
+
+    cv_bridge::CvImageConstPtr cv_ptrD;
+    try {
+        cv_ptrD = cv_bridge::toCvShare(msgD);
+    } catch (cv_bridge::Exception& e) {
+        ROS_ERROR("cv_bridge exception: %s", e.what());
+        return;
+    }
+
+    cv::Mat im = cv_ptrRGB->image.clone();
+    cv::Mat imu;
+    cv::Mat Tcw = mpSLAM->TrackRGBD(cv_ptrRGB->image, cv_ptrD->image, cv_ptrRGB->header.stamp.toSec());
+    int state = mpSLAM->GetTrackingState();
+    vector<ORB_SLAM3::MapPoint*> vMPs = mpSLAM->GetTrackedMapPoints();
+    vector<cv::KeyPoint> vKeys = mpSLAM->GetTrackedKeyPointsUn();
+    cv::undistort(im, imu, K, DistCoef);
     if (bRGB)
         viewerAR.SetImagePose(imu, Tcw, state, vKeys, vMPs);
     else {

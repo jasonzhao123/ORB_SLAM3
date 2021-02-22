@@ -118,6 +118,16 @@ target_link_libraries(MonoAR
 ${LIBS}
 )
 
+add_executable(RGBDAR
+src/AR/ros_rgbd_ar.cpp
+src/AR/ViewerAR.h
+src/AR/ViewerAR.cc
+)
+
+target_link_libraries(RGBDAR
+${LIBS}
+)
+
 # Node for stereo camera
 add_executable(Stereo
 src/ros_stereo.cc
